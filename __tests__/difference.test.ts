@@ -1,8 +1,5 @@
 import { compare, DiffType, Difference, CompareResult } from '../src/index';
 
-
-const filterByType = (res: CompareResult, type: DiffType) => res.diff.filter(x=>x.type === type);
-
 const notEmptyObject = { 
   v1: 1, 
   v2: true, 
@@ -16,22 +13,22 @@ const emptyObject = { }
 
 test('compare object with values and empty object', () => {
   const result = compare(notEmptyObject, emptyObject)
-  const absentInA = result.diff.filter(x=>x.type == DiffType.ADDED)
-  const absentInB = result.diff.filter(x=>x.type == DiffType.REMOVED)
+  const added = result.diff.filter(x=>x.type == DiffType.ADDED)
+  const removed = result.diff.filter(x=>x.type == DiffType.REMOVED)
 
   expect(result.equal).toBeFalsy()
-  expect(absentInA).toHaveLength(0)
-  expect(absentInB).toHaveLength(countValuesInNotEmptyObject)
+  expect(added).toHaveLength(0)
+  expect(removed).toHaveLength(countValuesInNotEmptyObject)
 });
 
 test('compare empty object and object with values', () => {
   const result = compare(emptyObject, notEmptyObject)
-  const absentInA = result.diff.filter(x=>x.type == DiffType.ADDED)
-  const absentInB = result.diff.filter(x=>x.type == DiffType.REMOVED)
+  const added = result.diff.filter(x=>x.type == DiffType.ADDED)
+  const removed = result.diff.filter(x=>x.type == DiffType.REMOVED)
 
   expect(result.equal).toBeFalsy()
-  expect(absentInA).toHaveLength(countValuesInNotEmptyObject)
-  expect(absentInB).toHaveLength(0)
+  expect(added).toHaveLength(countValuesInNotEmptyObject)
+  expect(removed).toHaveLength(0)
 });
 
 test('compare ', () => {
