@@ -21,7 +21,7 @@ const checkChangesCounts = (groupedChanges, added, removed, updated) => {
   expect(groupedChanges.updated).toHaveLength(updated)
 }
 
-test('compare object with values and empty object', () => {
+test('detect removed fields between empty and non empty simple object', () => {
   const result = compare(notEmptyObject, {})
   const groupedChanges = groupChanges(result);
   const fieldsCount = Object.keys(notEmptyObject).length;
@@ -30,16 +30,16 @@ test('compare object with values and empty object', () => {
   checkChangesCounts(groupedChanges, 0, fieldsCount, 0)
 });
 
-test('compare empty object and object with values', () => {
+test('detect added fields between empty and non empty simple object', () => {
   const result = compare({}, notEmptyObject)
-  const groupedChanges = groupChanges(result);
-  const fieldsCount = Object.keys(notEmptyObject).length;
+  const groupedChanges = groupChanges(result)
+  const fieldsCount = Object.keys(notEmptyObject).length
 
   expect(result.equal).toBeFalsy()
   checkChangesCounts(groupedChanges, fieldsCount, 0, 0)
 });
 
-test('compare ', () => {
+test('detect added, removed, updated in simple/flat objects', () => {
   let a = JSON.parse(JSON.stringify(notEmptyObject))
   a.v1 = undefined
   let b = JSON.parse(JSON.stringify(notEmptyObject))

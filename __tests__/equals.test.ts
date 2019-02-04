@@ -8,7 +8,7 @@ test('compare empty arrays', () => {
   expect(compare([], []).equal).toBeTruthy()
 });
 
-test('compare objects with primitives', () => {
+test('compare equal objects with primitives', () => {
   const a = { v1: 1, v2: true, v3: 'Qwerty', v4: null, v5: undefined }
   const b = { v1: 1, v2: true, v3: 'Qwerty', v4: null, v5: undefined }
   const reorderedB = { v2: true, v3: 'Qwerty', v4: null, v1: 1, v5: undefined}
@@ -17,7 +17,7 @@ test('compare objects with primitives', () => {
   expect(compare(a, reorderedB).equal).toBeTruthy()
 });
 
-test('compare arrays with primitives', () => {
+test('compare equal arrays with primitives', () => {
   const a = [ 1, "string", false, null, undefined ]
   const b = [ 1, "string", false, null, undefined ]
   const reorderedB = [ false, null,  "string", undefined, 1 ]
@@ -26,7 +26,7 @@ test('compare arrays with primitives', () => {
   expect(compare(a, reorderedB).equal).toBeTruthy()
 });
 
-test('compare objects with hierarchy', () => {
+test('compare equal objects with hierarchy', () => {
   const objA = { 
     v1: { v: { v: { v: 'string', v2: 111 } } },
     v2: { v: { v: { v: null, v2: true } } } 
@@ -39,7 +39,7 @@ test('compare objects with hierarchy', () => {
   expect(compare(objA, objB).equal).toBeTruthy()
 });
 
-test('compare arrays with hierarchy and disorder', () => {
+test('compare equal arrays with hierarchy and disorder', () => {
   const arrA = [
     [
       { v: { v: { v: { v4: 'string', v5: 111 } } } }, 
