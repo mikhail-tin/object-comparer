@@ -1,14 +1,32 @@
-import { Difference, DiffType, CompareResult } from './interfaces'
+interface CompareResult {
+    equal: boolean;
+    diff: Difference[];
+}
+
+interface Difference {
+    key: string;
+    valueInObjA: any;
+    valueInObjB: any;
+    type: DiffType;
+}
+
+enum DiffType {
+    NONE,
+    ADDED,
+    REMOVED,
+    UPDATED
+}
 
 const isObject = (val) => typeof(val) == 'object';
 const isArray = Array.isArray;
+const isUndefined = (val) => val === undefined;
 
 const sortByValues = (a: any, b: any): number => {
     var ja = isObject(a) ? JSON.stringify(flatten(a)) : JSON.stringify(a)
     var jb = isObject(b) ? JSON.stringify(flatten(b)) : JSON.stringify(b)
 
     return Number((ja > jb)) - Number((ja < jb));
-}
+};
 
 const nestElement = (previousValue :any, currentValue :any, key: string, prefix = '') => {
     return currentValue && isObject(currentValue)
@@ -17,7 +35,7 @@ const nestElement = (previousValue :any, currentValue :any, key: string, prefix 
 };
 
 function flatten(objectOrArray, prefix = ''): any {
-    if (Array.isArray(objectOrArray)) {
+    if (isArray(objectOrArray)) {
         return objectOrArray
             .sort(sortByValues)
             .reduce((prev, сurr, ind) => nestElement(prev, сurr, `[${ind}]`, prefix), {});
@@ -31,27 +49,17 @@ function flatten(objectOrArray, prefix = ''): any {
 }
 
 function diff(objA: object, objB: object, key: string): Difference {
-    const valueInObjAUndefined = objA[key] === undefined;
-    const valueInObjBUndefined = objB[key] === undefined;
-    const [a, b] = [objA[key], objB[key]];
-    let type;
+    const [valueInObjA, valueInObjB] = [objA[key], objB[key]];
+    let type = DiffType.NONE;
 
-    if (a === b) {
-        type = DiffType.NONE
-    } else {
+    if (valueInObjA !== valueInObjB) {
         type = DiffType.UPDATED;
-        if (valueInObjAUndefined || valueInObjBUndefined) {
-            type = valueInObjAUndefined ? DiffType.ADDED  : DiffType.REMOVED;
+        if (isUndefined(objA[key]) || isUndefined(objB[key])) {
+            type = isUndefined(objA[key]) ? DiffType.ADDED  : DiffType.REMOVED;
         }
     }
 
-    return {
-        keyInObjA: !valueInObjAUndefined ? key : "",
-        keyInObjB: !valueInObjBUndefined ? key : "",
-        valueInObjA:  a,
-        valueInObjB: b,
-        type: type
-    }
+    return { key, valueInObjA, valueInObjB, type }
 }
 
 function compare(objA: object, objB: object): CompareResult {
@@ -66,11 +74,11 @@ function compare(objA: object, objB: object): CompareResult {
 
     const result = (r1.concat(r2))
         .filter(diff => diff.type !== DiffType.NONE);
-
+    
     return {
         equal: result.length === 0,
         diff: result
     }
 }
 
-export { compare, CompareResult, Difference, DiffType };
+export { CompareResult, Difference, DiffType, compare };
