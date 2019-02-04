@@ -4,41 +4,58 @@ const notEmptyObject = {
   v1: 1, 
   v2: true, 
   v3: 'Qwerty', 
-  v4: null,
-  v5: [1, "2", { v: 3} ],
-  v6: { v1: "1", v2: 2 }
+  v4: null
 };
-const countValuesInNotEmptyObject = 9;
-const emptyObject = { }
+
+const groupChanges = (compareResult) => {
+  return {
+    added: compareResult.diff.filter(x => x.type == DiffType.ADDED),
+    removed: compareResult.diff.filter(x => x.type == DiffType.REMOVED),
+    updated: compareResult.diff.filter(x => x.type == DiffType.UPDATED)
+  }
+}
+
+const checkChangesCounts = (groupedChanges, added, removed, updated) => {
+  expect(groupedChanges.added).toHaveLength(added)
+  expect(groupedChanges.removed).toHaveLength(removed)
+  expect(groupedChanges.updated).toHaveLength(updated)
+}
 
 test('compare object with values and empty object', () => {
-  const result = compare(notEmptyObject, emptyObject)
-  const added = result.diff.filter(x=>x.type == DiffType.ADDED)
-  const removed = result.diff.filter(x=>x.type == DiffType.REMOVED)
+  const result = compare(notEmptyObject, {})
+  const groupedChanges = groupChanges(result);
+  const fieldsCount = Object.keys(notEmptyObject).length;
 
   expect(result.equal).toBeFalsy()
-  expect(added).toHaveLength(0)
-  expect(removed).toHaveLength(countValuesInNotEmptyObject)
+  checkChangesCounts(groupedChanges, 0, fieldsCount, 0)
 });
 
 test('compare empty object and object with values', () => {
-  const result = compare(emptyObject, notEmptyObject)
-  const added = result.diff.filter(x=>x.type == DiffType.ADDED)
-  const removed = result.diff.filter(x=>x.type == DiffType.REMOVED)
+  const result = compare({}, notEmptyObject)
+  const groupedChanges = groupChanges(result);
+  const fieldsCount = Object.keys(notEmptyObject).length;
 
   expect(result.equal).toBeFalsy()
-  expect(added).toHaveLength(countValuesInNotEmptyObject)
-  expect(removed).toHaveLength(0)
+  checkChangesCounts(groupedChanges, fieldsCount, 0, 0)
 });
 
 test('compare ', () => {
+  let a = JSON.parse(JSON.stringify(notEmptyObject))
+  a.v1 = undefined
+  let b = JSON.parse(JSON.stringify(notEmptyObject))
+  b.v2 = undefined
+  b.v3 = "updated value"
 
-  let b = JSON.parse(JSON.stringify(notEmptyObject));
-  b.v1 = "new value";
+  const result = compare(a, b)
+  const groupedChanges = groupChanges(result)
 
-  const result = compare(notEmptyObject, b)
-
+  const added = {key: 'v1', type: DiffType.ADDED, valueInObjA: a.v1, valueInObjB: b.v1 }
+  const removed = {key: 'v2', type: DiffType.REMOVED, valueInObjA: a.v2, valueInObjB: b.v2 }
+  const updated = {key: 'v3', type: DiffType.UPDATED, valueInObjA: a.v3, valueInObjB: b.v3 }
 
   expect(result.equal).toBeFalsy()
-  expect(result.diff.length).toBe(1)
+  checkChangesCounts(groupedChanges, 1, 1, 1)
+  expect(groupedChanges.added[0]).toEqual(added)
+  expect(groupedChanges.removed[0]).toEqual(removed)
+  expect(groupedChanges.updated[0]).toEqual(updated)
 });

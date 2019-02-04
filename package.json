@@ -4,10 +4,15 @@
   "description": "Compare object by meaning.",
   "homepage": "https://github.com/mikhail-tin/object-comparer/blob/master/README.md",
   "repository": {
-    "type" : "git",
-    "url" : "https://github.com/mikhail-tin/object-comparer.git"
+    "type": "git",
+    "url": "https://github.com/mikhail-tin/object-comparer.git"
   },
-  "keywords":["object", "array", "compare", "equal"],
+  "keywords": [
+    "object",
+    "array",
+    "compare",
+    "equal"
+  ],
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "author": "mikhail.tin",

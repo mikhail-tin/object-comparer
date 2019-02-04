@@ -11,7 +11,6 @@ interface Difference {
 }
 
 enum DiffType {
-    NONE,
     ADDED,
     REMOVED,
     UPDATED
@@ -48,15 +47,14 @@ function flatten(objectOrArray, prefix = ''): any {
     }
 }
 
-function diff(objA: object, objB: object, key: string): Difference {
+function diff(objA: object, objB: object, key: string): Difference | null {
     const [valueInObjA, valueInObjB] = [objA[key], objB[key]];
-    let type = DiffType.NONE;
 
-    if (valueInObjA !== valueInObjB) {
-        type = DiffType.UPDATED;
-        if (isUndefined(objA[key]) || isUndefined(objB[key])) {
-            type = isUndefined(objA[key]) ? DiffType.ADDED  : DiffType.REMOVED;
-        }
+    if(valueInObjA === valueInObjB)  return null;
+
+    let type = DiffType.UPDATED;
+    if (isUndefined(valueInObjA) || isUndefined(valueInObjB)) {
+        type = isUndefined(valueInObjA) ? DiffType.ADDED  : DiffType.REMOVED;
     }
 
     return { key, valueInObjA, valueInObjB, type }
@@ -72,13 +70,13 @@ function compare(objA: object, objB: object): CompareResult {
     const r1 = <Difference[]>Object.keys(objA).map((key) => diff(objA, objB, key));
     const r2 = <Difference[]>Object.keys(objB).map((key) => diff(objA, objB, key));
 
-    let result = (r1.concat(r2)).filter(diff => diff.type !== DiffType.NONE);
-    
     var hashTable = {};
-    result = result.filter((el) => {
-        const key = JSON.stringify(el);
-        return (Boolean(hashTable[key]) ? false : hashTable[key] = true);
-    })
+    let result = (r1.concat(r2))
+        .filter(diff => !!diff)
+        .filter((el) => {
+            const key = JSON.stringify(el);
+            return (Boolean(hashTable[key]) ? false : hashTable[key] = true);
+        });
 
     return {
         equal: result.length === 0,
