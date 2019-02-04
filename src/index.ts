@@ -69,12 +69,17 @@ function compare(objA: object, objB: object): CompareResult {
 
     [objA, objB] = [flatten(objA, ''), flatten(objB, '')];
 
-    const r1 = Object.keys(objA).map((key) => diff(objA, objB, key));
-    const r2 = Object.keys(objB).map((key) => diff(objA, objB, key));
+    const r1 = <Difference[]>Object.keys(objA).map((key) => diff(objA, objB, key));
+    const r2 = <Difference[]>Object.keys(objB).map((key) => diff(objA, objB, key));
 
-    const result = (r1.concat(r2))
-        .filter(diff => diff.type !== DiffType.NONE);
+    let result = (r1.concat(r2)).filter(diff => diff.type !== DiffType.NONE);
     
+    var hashTable = {};
+    result = result.filter((el) => {
+        const key = JSON.stringify(el);
+        return (Boolean(hashTable[key]) ? false : hashTable[key] = true);
+    })
+
     return {
         equal: result.length === 0,
         diff: result

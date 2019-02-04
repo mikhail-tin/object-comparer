@@ -40,5 +40,5 @@ test('compare ', () => {
 
 
   expect(result.equal).toBeFalsy()
-
+  expect(result.diff.length).toBe(1)
 });
