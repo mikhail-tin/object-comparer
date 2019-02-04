@@ -54,7 +54,7 @@ function diff(objA: object, objB: object, key: string): Difference | null {
 
     let type = DiffType.UPDATED;
     if (isUndefined(valueInObjA) || isUndefined(valueInObjB)) {
-        type = isUndefined(valueInObjA) ? DiffType.ADDED  : DiffType.REMOVED;
+        type = isUndefined(valueInObjA) ? DiffType.ADDED : DiffType.REMOVED;
     }
 
     return { key, valueInObjA, valueInObjB, type }
@@ -67,20 +67,16 @@ function compare(objA: object, objB: object): CompareResult {
 
     [objA, objB] = [flatten(objA, ''), flatten(objB, '')];
 
-    const r1 = <Difference[]>Object.keys(objA).map((key) => diff(objA, objB, key));
-    const r2 = <Difference[]>Object.keys(objB).map((key) => diff(objA, objB, key));
+    let keys = (Object.keys(objA).concat(Object.keys(objB)))
+        .filter((val, ind, arr) => ind <= arr.indexOf(val));
 
-    var hashTable = {};
-    let result = (r1.concat(r2))
-        .filter(diff => !!diff)
-        .filter((el) => {
-            const key = JSON.stringify(el);
-            return (Boolean(hashTable[key]) ? false : hashTable[key] = true);
-        });
+    const result = keys
+        .map((val, ind, arr) => diff(objA, objB, val))
+        .filter(diff => !!diff);
 
     return {
         equal: result.length === 0,
-        diff: result
+        diff: <Difference[]>result
     }
 }
 

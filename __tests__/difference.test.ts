@@ -59,3 +59,18 @@ test('detect added, removed, updated in simple/flat objects', () => {
   expect(groupedChanges.removed[0]).toEqual(removed)
   expect(groupedChanges.updated[0]).toEqual(updated)
 });
+
+test('detect  objects', () => {
+  let a = JSON.parse(JSON.stringify(notEmptyObject))
+  a.obj = { v2: true, v3: 'Qwerty', v4: null}
+  let b = JSON.parse(JSON.stringify(notEmptyObject))
+  b.obj = {v1: 1, v3: 'Updated', v4: {v1: 9}}
+
+
+  const result = compare(a, b)
+  const groupedChanges = groupChanges(result)
+
+  expect(result.equal).toBeFalsy()
+  checkChangesCounts(groupedChanges, 1, 1, 1)
+
+});
