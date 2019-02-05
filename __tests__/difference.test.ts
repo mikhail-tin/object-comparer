@@ -61,16 +61,72 @@ test('detect added, removed, updated in simple/flat objects', () => {
 });
 
 test('detect  objects', () => {
-  let a = JSON.parse(JSON.stringify(notEmptyObject))
-  a.obj = { v2: true, v3: 'Qwerty', v4: null}
-  let b = JSON.parse(JSON.stringify(notEmptyObject))
-  b.obj = {v1: 1, v3: 'Updated', v4: {v1: 9}}
-
+  let a = JSON.parse(JSON.stringify({}))
+  a.obj = {
+    //v1: 1, 
+    v2: true, 
+    v3: 'Qwerty', 
+    v4: null
+  }
+  let b = JSON.parse(JSON.stringify({}))
+  b.obj = {
+    v1: 1,
+    //v2: true, 
+    v3: 'Updated', 
+    v4: {v1: 9}
+  }
 
   const result = compare(a, b)
   const groupedChanges = groupChanges(result)
 
   expect(result.equal).toBeFalsy()
-  checkChangesCounts(groupedChanges, 1, 1, 1)
+  checkChangesCounts(groupedChanges, 1, 1, 2)
+  expect(groupedChanges.added[0]).toEqual({key: "obj.v1", valueInObjA: undefined, valueInObjB: 1, type: 0})
+  expect(groupedChanges.removed[0]).toEqual({key: "obj.v2", valueInObjA: true, valueInObjB: undefined, type: 1})
+  expect(groupedChanges.updated[0]).toEqual({key: "obj.v3", valueInObjA: "Qwerty", valueInObjB: "Updated", type: 2})
+  expect(groupedChanges.updated[1]).toEqual({key: "obj.v4", valueInObjA: null, valueInObjB: {v1: 9}, type: 2})
+});
 
+
+test('compare equal crazy objects with different ordering', () => {
+  const a = {
+    v1: "12345",
+    v2: 12345,
+    //v3: null,
+    v4: true,
+    a1: [
+      {a1v1: 1, a1v2: "2", a1a1: [1,2,false], a1o1: {a1o1v1: true} },
+      {a1v1: 3, a1v2: "1", a1a1: [3,4], /*a1o1: {a1o1v1: "1"}*/ }, 
+    ],
+    a2: ["1", 2, {a2a1: ["1", 2, 3.5] } ,3.5],
+    o1: {
+      o1v1: "qwerty",
+      o1a1: [
+        {o1a1a1: [], o1a1o1: {}, o1a1a2: [{}, {}]},
+        {o1a1a1: [1], o1a1o1: {o1a1o1o1: []}, o1a1a2: [{}]}
+      ]
+    },
+  };
+
+  const b = {
+    o1: {
+      o1v1: "qwerty",
+      o1a1: [
+        {o1a1a1: [], o1a1o1: {}, o1a1a2: [{}, {}]},
+        {o1a1a1: [1], o1a1o1: {o1a1o1o1: []}, o1a1a2: [{}]}
+      ]
+    },
+    a1: [
+      //{a1v2: "1", a1a1: [3, 4], a1v1: 3, a1o1: {a1o1v1: "1"} },
+      {a1a1: [2,false,1], a1v1: 1, a1o1: {a1o1v1: true}, a1v2: "2" },
+    ],
+    v2: 12345,
+    v3: null,
+    v1: "12345",
+    //v4: true,
+    a2: [2, 3.5, /*"1",*/ {a2a1: [2, "1", 3.5] } ]
+  };
+
+  const result = compare(a, b)
+  expect(compare(a, b).equal).toBeTruthy()
 });
