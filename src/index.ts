@@ -5,8 +5,8 @@ interface CompareResult {
 
 interface Difference {
     key: string;
-    valueInObjA: any;
-    valueInObjB: any;
+    valueInObjectA: any;
+    valueInObjectB: any;
     type: DiffType;
 }
 
@@ -34,12 +34,12 @@ const nestElement = (previousValue :any, currentValue :any, key: string, prefix 
         : { ...previousValue, ...{ [`${prefix}${key}`]: currentValue } };
 };
 
-function flatten(objectOrArray, prefix = '', key = ''): any {
+function flatten(objectOrArray, prefix = '', key = '', arraySortingAlgorithm = sortByValues): any {
     let result;
 
     if (isArray(objectOrArray)) {
         result = objectOrArray
-            .sort(sortByValues)
+            .sort(arraySortingAlgorithm)
             .reduce((prev, сurr, ind) => nestElement(prev, сurr, `[${ind}]`, prefix), {});
     } else {
         if (objectOrArray == null)  return null;
@@ -56,32 +56,33 @@ function flatten(objectOrArray, prefix = '', key = ''): any {
 }
 
 function diff(objA: object, objB: object, key: string, foundedDiff: Difference[] = []): Difference | null {
-    const [valInObjA, valInObjB] = [objA[key], objB[key]];
+    const [valInA, valInB] = [objA[key], objB[key]];
 
-    if((isTrueObject(valInObjA) && isTrueObject(valInObjB)) || valInObjA === valInObjB) return null;
+    const areObjectsData = isTrueObject(valInA) && isTrueObject(valInB)
+    if(areObjectsData || valInA === valInB) return null;
 
-    if(isArray(valInObjA) && isArray(valInObjB)) {
-        return  valInObjA.length !== valInObjB.length
-            ? { key: key, valueInObjA: valInObjA, valueInObjB: valInObjB, type: DiffType.UPDATED }
+    if(isArray(valInA) && isArray(valInB)) {
+        return  valInA.length !== valInB.length
+            ? { key: key, valueInObjectA: valInA, valueInObjectB: valInB, type: DiffType.UPDATED }
             : null;
     }
 
     if(foundedDiff.findIndex(x=> !!x && key.startsWith(x.key))) return null;
 
     let type = DiffType.UPDATED;
-    if (isUndefined(valInObjA) || isUndefined(valInObjB)) {
-        type = isUndefined(valInObjA) ? DiffType.ADDED : DiffType.REMOVED;
+    if (isUndefined(valInA) || isUndefined(valInB)) {
+        type = isUndefined(valInA) ? DiffType.ADDED : DiffType.REMOVED;
     }
 
-    return { key: key, valueInObjA: valInObjA, valueInObjB: valInObjB, type }
+    return { key: key, valueInObjectA: valInA, valueInObjectB: valInB, type }
 }
 
-function compare(objA: object, objB: object): CompareResult {
+function compare(objA: object, objB: object, arraySortingAlgorithm = sortByValues): CompareResult {
     if (!isObject(objA) || !isObject(objB) || (isArray(objA) !== isArray(objB))) {
         throw new Error("objA or objB are not object or array or have different types");
     }
 
-    [objA, objB] = [flatten(objA), flatten(objB)];
+    [objA, objB] = [flatten(objA, '', '', arraySortingAlgorithm), flatten(objB, '', '', arraySortingAlgorithm)];
 
     let keys = (Object.keys(objA).concat(Object.keys(objB)))
         .filter((val, ind, arr) => ind <= arr.indexOf(val))
