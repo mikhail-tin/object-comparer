@@ -20,7 +20,7 @@ const checkChangesCounts = (groupedChanges, added, removed, updated) => {
   expect(groupedChanges.removed).toHaveLength(removed)
   expect(groupedChanges.updated).toHaveLength(updated)
 }
-
+/*
 test('detect removed fields between empty and non empty simple object', () => {
   const result = compare(notEmptyObject, {})
   const groupedChanges = groupChanges(result);
@@ -60,7 +60,7 @@ test('detect added, removed, updated in simple/flat objects', () => {
   expect(groupedChanges.updated[0]).toEqual(updated)
 });
 
-test('detect  objects', () => {
+test('detect added, removed, updated in objects with childs', () => {
   let a = JSON.parse(JSON.stringify({}))
   a.obj = {
     //v1: 1, 
@@ -87,8 +87,8 @@ test('detect  objects', () => {
   expect(groupedChanges.updated[1]).toEqual({key: "obj.v4", valueInObjA: null, valueInObjB: {v1: 9}, type: 2})
 });
 
-
-test('compare equal crazy objects with different ordering', () => {
+*/
+test('compare different crazy objects with different ordering', () => {
   const a = {
     v1: "12345",
     v2: 12345,
@@ -112,7 +112,7 @@ test('compare equal crazy objects with different ordering', () => {
     o1: {
       o1v1: "qwerty",
       o1a1: [
-        {o1a1a1: [], o1a1o1: {}, o1a1a2: [{}, {}]},
+        {o1a1a1: 111/*[]*/, o1a1o1: {}, o1a1a2: [{}, {}]},
         {o1a1a1: [1], o1a1o1: {o1a1o1o1: []}, o1a1a2: [{}]}
       ]
     },
@@ -130,3 +130,12 @@ test('compare equal crazy objects with different ordering', () => {
   const result = compare(a, b)
   expect(compare(a, b).equal).toBeTruthy()
 });
+
+test('difference', () => {
+  const result = compare(
+    ["1", 2, 3.5, {a2a1: ["1", 2, 3.5]}],
+    [2, 3.5, {a2a1: ["1", 2, 3.5]}])
+
+  expect(result.equal).toBeTruthy()
+});
+

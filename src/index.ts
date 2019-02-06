@@ -16,9 +16,9 @@ enum DiffType {
     UPDATED
 }
 
-const isObject = (val) => typeof(val) == 'object';
-const isTrueObject = (val) => typeof(val) == 'object' && val != null;
 const isArray = Array.isArray;
+const isObject = (val) => typeof(val) == 'object';
+const isTrueObject = (val) => typeof(val) == 'object' && val != null && !isArray(val);
 const isUndefined = (val) => val === undefined;
 
 const sortByValues = (a: any, b: any): number => {
@@ -60,7 +60,13 @@ function diff(objA: object, objB: object, key: string, foundedDiff: Difference[]
 
     if((isTrueObject(valInObjA) && isTrueObject(valInObjB)) || valInObjA === valInObjB) return null;
 
-    if(foundedDiff.findIndex(x=> !!x && key.includes(x.key, 0)) !== -1) return null;
+    if(isArray(valInObjA) && isArray(valInObjB)) {
+        return  valInObjA.length !== valInObjB.length
+            ? { key: key, valueInObjA: valInObjA, valueInObjB: valInObjB, type: DiffType.UPDATED }
+            : null;
+    }
+
+    if(foundedDiff.findIndex(x=> !!x && key.startsWith(x.key))) return null;
 
     let type = DiffType.UPDATED;
     if (isUndefined(valInObjA) || isUndefined(valInObjB)) {

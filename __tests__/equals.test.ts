@@ -65,7 +65,9 @@ test('compare equal arrays with hierarchy and disorder', () => {
     ]
   ]
 
-  expect(compare(arrA, arrB).equal).toBeTruthy()
+  const res = compare(arrA, arrB)
+
+  expect(res.equal).toBeTruthy()
 });
 
 test('compare equal crazy objects with different ordering', () => {
@@ -107,5 +109,7 @@ test('compare equal crazy objects with different ordering', () => {
     a2: [2, 3.5, "1", {a2a1: [2, "1", 3.5] } ]
   };
 
-  expect(compare(a, b).equal).toBeTruthy()
+  const res = compare(a, b)
+
+  expect(res.equal).toBeTruthy()
 });
