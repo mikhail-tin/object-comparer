@@ -88,46 +88,39 @@ test('detect added, removed, updated in objects with childs', () => {
 });
 
 */
-test('compare different crazy objects with different ordering', () => {
+test('compare objects with array with different length', () => {
   const a = {
-    v1: "12345",
-    v2: 12345,
-    //v3: null,
-    v4: true,
     a1: [
       {a1v1: 1, a1v2: "2", a1a1: [1,2,false], a1o1: {a1o1v1: true} },
       {a1v1: 3, a1v2: "1", a1a1: [3,4], /*a1o1: {a1o1v1: "1"}*/ }, 
-    ],
-    a2: ["1", 2, {a2a1: ["1", 2, 3.5] } ,3.5],
-    o1: {
-      o1v1: "qwerty",
-      o1a1: [
-        {o1a1a1: [], o1a1o1: {}, o1a1a2: [{}, {}]},
-        {o1a1a1: [1], o1a1o1: {o1a1o1o1: []}, o1a1a2: [{}]}
-      ]
-    },
+    ]
   };
-
   const b = {
-    o1: {
-      o1v1: "qwerty",
-      o1a1: [
-        {o1a1a1: 111/*[]*/, o1a1o1: {}, o1a1a2: [{}, {}]},
-        {o1a1a1: [1], o1a1o1: {o1a1o1o1: []}, o1a1a2: [{}]}
-      ]
-    },
     a1: [
       //{a1v2: "1", a1a1: [3, 4], a1v1: 3, a1o1: {a1o1v1: "1"} },
       {a1a1: [2,false,1], a1v1: 1, a1o1: {a1o1v1: true}, a1v2: "2" },
     ],
-    v2: 12345,
-    v3: null,
-    v1: "12345",
-    //v4: true,
-    a2: [2, 3.5, /*"1",*/ {a2a1: [2, "1", 3.5] } ]
   };
 
   const result = compare(a, b)
+  expect(result.equal).toBeFalsy()
+  expect(result.diff.length).toContain(1)
+  expect(result.diff[0].key).toBe("a1")
+  expect(result.diff[0].type).toBe(DiffType.UPDATED)
+});
+
+test('compare different crazy objects with different ordering', () => {
+  const a = { a2: ["1", 2,  {a2a1: ["1", 2, 3.5] },  3.5 ] };
+  const b = { a2: [ 2,  3.5, "W.5", { a2a1: [2, "1", 3.5] } ] };
+
+  const a1 = { a2: ["1", 2,  {a2a1: ["1", 2, 3.5] },  3.5 ] };
+  const b1 = { a2: [ 2,  "0", "1", { a2a1: [2, "1", 3.5] } ] };
+
+
+
+  const result = compare(a, b)
+  const result1 = compare(a1, b1)
+
   expect(compare(a, b).equal).toBeTruthy()
 });
 

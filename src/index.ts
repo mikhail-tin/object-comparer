@@ -67,7 +67,7 @@ function diff(objA: object, objB: object, key: string, foundedDiff: Difference[]
             : null;
     }
 
-    if(foundedDiff.findIndex(x=> !!x && key.startsWith(x.key))) return null;
+    if(foundedDiff.some(x=> !!x && key.startsWith(x.key))) return null;
 
     let type = DiffType.UPDATED;
     if (isUndefined(valInA) || isUndefined(valInB)) {
