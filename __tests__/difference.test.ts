@@ -20,7 +20,7 @@ const checkChangesCounts = (groupedChanges, added, removed, updated) => {
   expect(groupedChanges.removed).toHaveLength(removed)
   expect(groupedChanges.updated).toHaveLength(updated)
 }
-/*
+
 test('detect removed fields between empty and non empty simple object', () => {
   const result = compare(notEmptyObject, {})
   const groupedChanges = groupChanges(result);
@@ -49,9 +49,9 @@ test('detect added, removed, updated in simple/flat objects', () => {
   const result = compare(a, b)
   const groupedChanges = groupChanges(result)
 
-  const added = {key: 'v1', type: DiffType.ADDED, valueInObjectA: a.v1, valueInObjectB: b.v1 }
-  const removed = {key: 'v2', type: DiffType.REMOVED, valueInObjectA: a.v2, valueInObjectB: b.v2 }
-  const updated = {key: 'v3', type: DiffType.UPDATED, valueInObjectA: a.v3, valueInObjectB: b.v3 }
+  const added = {key: 'v1', type: DiffType.ADDED, valueInObjectA: a.v1, valueInObjectB: b.v1, subDiffs: [] }
+  const removed = {key: 'v2', type: DiffType.REMOVED, valueInObjectA: a.v2, valueInObjectB: b.v2, subDiffs: [] }
+  const updated = {key: 'v3', type: DiffType.UPDATED, valueInObjectA: a.v3, valueInObjectB: b.v3, subDiffs: [] }
 
   expect(result.equal).toBeFalsy()
   checkChangesCounts(groupedChanges, 1, 1, 1)
@@ -81,13 +81,13 @@ test('detect added, removed, updated in objects with childs', () => {
 
   expect(result.equal).toBeFalsy()
   checkChangesCounts(groupedChanges, 1, 1, 2)
-  expect(groupedChanges.added[0]).toEqual({key: "obj.v1", valueInObjectA: undefined, valueInObjectB: 1, type: 0})
-  expect(groupedChanges.removed[0]).toEqual({key: "obj.v2", valueInObjectA: true, valueInObjectB: undefined, type: 1})
-  expect(groupedChanges.updated[0]).toEqual({key: "obj.v3", valueInObjectA: "Qwerty", valueInObjectB: "Updated", type: 2})
-  expect(groupedChanges.updated[1]).toEqual({key: "obj.v4", valueInObjectA: null, valueInObjectB: {v1: 9}, type: 2})
+  expect(groupedChanges.added[0]).toEqual({key: "obj.v1", valueInObjectA: undefined, valueInObjectB: 1, type: 0, subDiffs: [] })
+  expect(groupedChanges.removed[0]).toEqual({key: "obj.v2", valueInObjectA: true, valueInObjectB: undefined, type: 1, subDiffs: [] })
+  expect(groupedChanges.updated[0]).toEqual({key: "obj.v3", valueInObjectA: "Qwerty", valueInObjectB: "Updated", type: 2, subDiffs: [] })
+  expect(groupedChanges.updated[1]).toEqual({key: "obj.v4", valueInObjectA: null, valueInObjectB: {v1: 9}, type: 2, subDiffs: [] })
 });
 
-*/
+
 test('compare objects with array with different length', () => {
   const a = {
     a1: [
@@ -110,13 +110,11 @@ test('compare objects with array with different length', () => {
 });
 
 test('compare different crazy objects with different ordering', () => {
-  const a = { a2: ["1", 2,  {a2a1: ["1", 2, 3.5] },  3.5 ] };
-  const b = { a2: [ 2,  3.5, "W.5", { a2a1: [2, "1", 3.5] } ] };
+  const a = { a2: ["1",  2,         { a2a1: ["1", 2,  3.5] },  3.5 ] };
+  const b = { a2: [ 2,  3.5, "W.5", { a2a1: [ 2, "1", 3.5] }       ] };
 
-  const a1 = { a2: ["1", 2,  {a2a1: ["1", 2, 3.5] },  3.5 ] };
-  const b1 = { a2: [ 2,  "0", "1", { a2a1: [2, "1", 3.5] } ] };
-
-
+  const a1 = { a2: ["1",  2,       { a2a1: ["1",  2,  3.5] },  3.5 ] };
+  const b1 = { a2: [ 2,  "0", "1", { a2a1: [ 2,  "1", 3.5] }       ] };
 
   const result = compare(a, b)
   const result1 = compare(a1, b1)
@@ -126,8 +124,8 @@ test('compare different crazy objects with different ordering', () => {
 
 test('difference', () => {
   const result = compare(
-    ["1", 2, 3.5, {a2a1: ["1", 2, 3.5]}],
-    [2, 3.5, {a2a1: ["1", 2, 3.5]}])
+    ["1",  2,  3.5, {a2a1: ["1", 2, 3.5]}],
+    [ 2,  3.5,      {a2a1: ["1", 2, 3.5]}] )
 
   expect(result.equal).toBeTruthy()
 });

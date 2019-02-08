@@ -8,6 +8,12 @@ interface Difference {
     valueInObjectA: any;
     valueInObjectB: any;
     type: DiffType;
+    subDiffs: Difference[]
+}
+
+interface CompareSettings {
+    reorderByValues?: boolean;
+    arraySortingFunc?: (a,b) => number;
 }
 
 enum DiffType {
@@ -16,36 +22,51 @@ enum DiffType {
     UPDATED
 }
 
+interface Key {
+    parent: string;
+    key: string;
+}
+
+const getDifference = (key, valInA, valInB, type): Difference => {
+    return { 
+        key: key, 
+        valueInObjectA: valInA, 
+        valueInObjectB: valInB, 
+        type: type, 
+        subDiffs: []
+    };
+}
+
 const isArray = Array.isArray;
 const isObject = (val) => typeof(val) == 'object';
 const isTrueObject = (val) => typeof(val) == 'object' && val != null && !isArray(val);
 const isUndefined = (val) => val === undefined;
 
-const sortByValues = (a: any, b: any): number => {
-    var ja = isObject(a) ? JSON.stringify(flatten(a)) : JSON.stringify(a)
-    var jb = isObject(b) ? JSON.stringify(flatten(b)) : JSON.stringify(b)
+const sortByValuesFunc = (a: any, b: any): number => {
+    var ja = isObject(a) ? JSON.stringify(flatten(a,'','', sortByValuesFunc)) : JSON.stringify(a);
+    var jb = isObject(b) ? JSON.stringify(flatten(b,'','', sortByValuesFunc)) : JSON.stringify(b);
 
     return Number((ja > jb)) - Number((ja < jb));
 };
 
-const nestElement = (previousValue :any, currentValue :any, key: string, prefix = '') => {
+const nestElement = (previousValue :any, currentValue :any, key: string, prefix = '', arraySortingFunction) => {
     return currentValue && isObject(currentValue)
-        ? { ...previousValue, ...flatten(currentValue, `${prefix}${key}.`, key) }
+        ? { ...previousValue, ...flatten(currentValue, `${prefix}${key}.`, key, arraySortingFunction) }
         : { ...previousValue, ...{ [`${prefix}${key}`]: currentValue } };
 };
 
-function flatten(objectOrArray, prefix = '', key = '', arraySortingAlgorithm = sortByValues): any {
+function flatten(objectOrArray, prefix = '', key = '', arraySortingFunction): any {
     let result;
 
     if (isArray(objectOrArray)) {
         result = objectOrArray
-            .sort(arraySortingAlgorithm)
-            .reduce((prev, сurr, ind) => nestElement(prev, сurr, `[${ind}]`, prefix), {});
+            .sort(arraySortingFunction)
+            .reduce((prev, сurr, ind) => nestElement(prev, сurr, `[${ind}]`, prefix, arraySortingFunction), {});
     } else {
         if (objectOrArray == null)  return null;
         result = Object.keys(objectOrArray)
             .sort()
-            .reduce((prev, element) => nestElement(prev, objectOrArray[element], element, prefix),{}); 
+            .reduce((prev, element) => nestElement(prev, objectOrArray[element], element, prefix, arraySortingFunction),{}); 
     }
 
     if (!!key) {
@@ -55,41 +76,77 @@ function flatten(objectOrArray, prefix = '', key = '', arraySortingAlgorithm = s
     return result;
 }
 
-function diff(objA: object, objB: object, key: string, foundedDiff: Difference[] = []): Difference | null {
+const isTrueObjects = (valInA, valInB) => (isTrueObject(valInA) && isTrueObject(valInB));
+const isArrays = (valInA, valInB) => isArray(valInA) && isArray(valInB);
+const isEqual = (valInA, valInB) => valInA === valInB;
+const isDifferenceInParentFound = (foundedDiff, key) => foundedDiff.some(x=> !!x && key.startsWith(x.key))
+
+function diff(objA: object, objB: object, formedKey: Key, foundedDiff: Difference[] = []): Difference | null {
+    const key = `${formedKey.parent}${formedKey.key}`;
     const [valInA, valInB] = [objA[key], objB[key]];
 
-    const areObjectsData = isTrueObject(valInA) && isTrueObject(valInB)
-    if(areObjectsData || valInA === valInB) return null;
+    if (isEqual(valInA, valInB) || isTrueObjects(valInA, valInB) || isArrays(valInA, valInB)) return null;
 
-    if(isArray(valInA) && isArray(valInB)) {
+    if(isArrays(valInA, valInB)) {
         return  valInA.length !== valInB.length
-            ? { key: key, valueInObjectA: valInA, valueInObjectB: valInB, type: DiffType.UPDATED }
+            ? getDifference(key, valInA, valInB, DiffType.UPDATED)
             : null;
-    }
-
-    if(foundedDiff.some(x=> !!x && key.startsWith(x.key))) return null;
+    }   
 
     let type = DiffType.UPDATED;
     if (isUndefined(valInA) || isUndefined(valInB)) {
         type = isUndefined(valInA) ? DiffType.ADDED : DiffType.REMOVED;
     }
 
-    return { key: key, valueInObjectA: valInA, valueInObjectB: valInB, type }
+    if (isDifferenceInParentFound(foundedDiff, key)) {
+        const currentValueIsArrayElement = formedKey.key.match(/(.[)(\d{1,4})(])/g) !== null;
+        if (currentValueIsArrayElement) {
+            var subDiff = getDifference(key, valInA, valInB, type);
+            var d = <Difference>foundedDiff.find(x=> !!x && key.startsWith(x.key));
+            d.subDiffs.push(subDiff)
+        }
+        return null;
+    }
+
+    return getDifference(key, valInA, valInB, type);
 }
 
-function compare(objA: object, objB: object, arraySortingAlgorithm = sortByValues): CompareResult {
+const getSortByValueFunction = () => {
+
+}
+
+function compare(objA: object, objB: object, settings: CompareSettings = {reorderByValues: true,}): CompareResult {
+
+    const arraySortingFunction = 
+        settings.arraySortingFunc  
+            ? settings.arraySortingFunc : settings.reorderByValues
+                ? sortByValuesFunc : (a,b) => 0;
+
     if (!isObject(objA) || !isObject(objB) || (isArray(objA) !== isArray(objB))) {
         throw new Error("objA or objB are not object or array or have different types");
     }
 
-    [objA, objB] = [flatten(objA, '', '', arraySortingAlgorithm), flatten(objB, '', '', arraySortingAlgorithm)];
+    [objA, objB] = [flatten(objA, '', '', arraySortingFunction), flatten(objB, '', '', arraySortingFunction)];
 
     let keys = (Object.keys(objA).concat(Object.keys(objB)))
         .filter((val, ind, arr) => ind <= arr.indexOf(val))
         .sort();
 
+    const inc = 0;
+
+    const formedKeys: Key[] = []; 
+
+    for (let i=0; i < keys.length; i++) {
+        const path = keys[i];
+
+        const parent =  path.substring(0, path.lastIndexOf('.'))
+        const key =  path.substring(path.lastIndexOf('.'))
+        
+        formedKeys.push({parent, key})
+    }
+
     var r2: Difference[] = [];
-    keys.forEach(key => r2.push(<Difference>diff(objA, objB, key, r2)))
+    formedKeys.forEach(key => r2.push(<Difference>diff(objA, objB, key, r2)))
     r2 = r2.filter(diff => !!diff);
 
     return {
