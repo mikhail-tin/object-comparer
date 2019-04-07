@@ -72,29 +72,45 @@ test('detect added, removed, updated in objects with childs', () => {
 
 
 
-
-/*
 test('compare objects with array with different length', () => {
   const a = {
     a1: [
-      {a1v1: 1, a1v2: "2", a1a1: [1,2,false], a1o1: {a1o1v1: true} },
-      {a1v1: 3, a1v2: "1", a1a1: [3,4], a1o1: {a1o1v1: "1"} }, 
+      {a1v1: 1, a1v2: "2" },
+      {a1v1: 3, a1v2: "1" }, 
     ]
   };
   const b = {
     a1: [
-      {a1a1: [2,false,1], a1v1: 1, a1o1: {a1o1v1: true}, a1v2: "2" },
+      { a1v1: 1, a1v2: "2" },
     ],
   };
 
   const result = compare(a, b)
 
   expect(result.equal).toBeFalsy()
-  expect(result.diff.length).toContain(1)
+  expect(result.diff).toHaveLength(1)
   expect(result.diff[0].key).toBe("a1")
   expect(result.diff[0].type).toBe(DiffType.UPDATED)
+  expect(result.diff[0].valueInObjectA.length).toBe(2)
+  expect(result.diff[0].valueInObjectB.length).toBe(1)
 });
 
+
+test('compare arrays with different length', () => {
+  const a = [1,    3];
+  const b = [1, 2, 3];
+
+  const result = compare(a, b)
+
+  expect(result.equal).toBeFalsy()
+  expect(result.diff).toHaveLength(1)
+  expect(result.diff[0].key).toBe("")
+  expect(result.diff[0].type).toBe(DiffType.UPDATED)
+  expect(result.diff[0].valueInObjectA).toBe(a)
+  expect(result.diff[0].valueInObjectB).toBe(b)
+});
+
+/*
 test('compare different crazy objects with different ordering', () => {
   const a = { a2: ["1",  2, { a2a1: ["1", 2, 3.5] },  3.5 ] };
   const b = { a2: [ 2,  3.5, "W.5", { a2a1: [ 2, "1", 3.5] } ] };

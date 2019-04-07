@@ -85,7 +85,7 @@ function diff(objA: object, objB: object, formedKey: Key, foundedDiff: Differenc
     const key = `${formedKey.parent}${formedKey.key}`;
     const [valInA, valInB] = [objA[key], objB[key]];
 
-    if (isEqual(valInA, valInB) || isTrueObjects(valInA, valInB) || isArrays(valInA, valInB)) return null;
+    if (isEqual(valInA, valInB) || isTrueObjects(valInA, valInB)) return null;
 
     if(isArrays(valInA, valInB)) {
         return  valInA.length !== valInB.length
@@ -126,13 +126,15 @@ function compare(objA: object, objB: object, settings: CompareSettings = {reorde
         throw new Error("objA or objB are not object or array or have different types");
     }
 
+    if(isArray(objA) && isArray(objB) && objA.length !== objB.length) {
+        return { equal: false, diff: [ getDifference("", objA, objB, DiffType.UPDATED)] }
+    }
+
     [objA, objB] = [flatten(objA, '', '', arraySortingFunction), flatten(objB, '', '', arraySortingFunction)];
 
     let keys = (Object.keys(objA).concat(Object.keys(objB)))
         .filter((val, ind, arr) => ind <= arr.indexOf(val))
         .sort();
-
-    const inc = 0;
 
     const formedKeys: Key[] = []; 
 
