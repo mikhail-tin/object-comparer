@@ -26,19 +26,6 @@ test('compare equal arrays with primitives', () => {
   expect(compare(a, reorderedB).equal).toBeTruthy()
 });
 
-test('compare equal objects with hierarchy', () => {
-  const objA = { 
-    v1: { v: { v: { v: 'string', v2: 111 } } },
-    v2: { v: { v: { v: null, v2: true } } } 
-  };
-  const objB = { 
-    v1: { v: { v: { v: 'string', v2: 111 } } },
-    v2: { v: { v: { v: null, v2: true } } } 
-  };
-
-  expect(compare(objA, objB).equal).toBeTruthy()
-});
-
 test('compare equal arrays with hierarchy and disorder', () => {
   const arrA = [
     [
@@ -70,7 +57,7 @@ test('compare equal arrays with hierarchy and disorder', () => {
   expect(res.equal).toBeTruthy()
 });
 
-test('compare equal crazy objects with different ordering', () => {
+test('compare equal objects with different ordering', () => {
   const a = {
     v1: "12345",
     v2: 12345,

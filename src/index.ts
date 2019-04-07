@@ -8,7 +8,7 @@ interface Difference {
     valueInObjectA: any;
     valueInObjectB: any;
     type: DiffType;
-    subDiffs: Difference[]
+    //subDiffs: Difference[]
 }
 
 interface CompareSettings {
@@ -33,7 +33,7 @@ const getDifference = (key, valInA, valInB, type): Difference => {
         valueInObjectA: valInA, 
         valueInObjectB: valInB, 
         type: type, 
-        subDiffs: []
+        //subDiffs: []
     };
 }
 
@@ -99,12 +99,12 @@ function diff(objA: object, objB: object, formedKey: Key, foundedDiff: Differenc
     }
 
     if (isDifferenceInParentFound(foundedDiff, key)) {
-        const currentValueIsArrayElement = formedKey.key.match(/(.[)(\d{1,4})(])/g) !== null;
+        /*const currentValueIsArrayElement = formedKey.key.match(/(.[)(\d{1,4})(])/g) !== null;
         if (currentValueIsArrayElement) {
             var subDiff = getDifference(key, valInA, valInB, type);
             var d = <Difference>foundedDiff.find(x=> !!x && key.startsWith(x.key));
             d.subDiffs.push(subDiff)
-        }
+        }*/
         return null;
     }
 
